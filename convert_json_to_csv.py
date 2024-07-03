@@ -1,65 +1,89 @@
 import json
 import pandas as pd
 
-def flatten_json(y):
-    out = {}
+def flatten_json(y, parent_key='', sep='_'):
+    """Recursive function to flatten a JSON object."""
+    items = []
+    if isinstance(y, dict):
+        for k, v in y.items():
+            new_key = f"{parent_key}{sep}{k}" if parent_key else k
+            items.extend(flatten_json(v, new_key, sep=sep).items())
+    elif isinstance(y, list):
+        for i, v in enumerate(y):
+            new_key = f"{parent_key}{sep}{i}" if parent_key else str(i)
+            items.extend(flatten_json(v, new_key, sep=sep).items())
+    else:
+        items.append((parent_key, y))
+    return dict(items)
 
-    def flatten(x, name=''):
-        if type(x) is dict:
-            for a in x:
-                flatten(x[a], name + a + '_')
-        elif type(x) is list:
-            i = 0
-            for a in x:
-                flatten(a, name + str(i) + '_')
-                i += 1
-        else:
-            out[name[:-1]] = x
-
-    flatten(y)
-    return out
-
-# Function to convert JSON string to CSV
 def json_to_csv(json_string, output_csv):
-    # Load the JSON data from the string
-    data = json.loads(json_string)
+    """Converts a JSON string to a CSV file."""
+    try:
+        # Load the JSON data from the string
+        data = json.loads(json_string)
 
-    # Flatten each JSON object
-    flattened_data = [flatten_json(item) for item in data]
+        # Check if the JSON data is a list, if not, make it a list
+        if not isinstance(data, list):
+            data = [data]
 
-    # Convert JSON to DataFrame
-    df = pd.DataFrame(flattened_data)
+        # Flatten each JSON object
+        flattened_data = [flatten_json(item) for item in data]
 
-    # Save DataFrame to CSV
-    df.to_csv(output_csv, index=False)
+        # Convert JSON to DataFrame
+        df = pd.DataFrame(flattened_data)
 
-    print(f"Conversion completed. The CSV file has been saved as '{output_csv}'.")
+        # Save DataFrame to CSV
+        df.to_csv(output_csv, index=False)
+
+        print(f"Conversion completed. The CSV file has been saved as '{output_csv}'.")
+    except json.JSONDecodeError as e:
+        print(f"Invalid JSON data: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 # Example usage
 if __name__ == "__main__":
-    # Sample complex JSON string
+    # Example of reading a JSON string from standard input
     json_string = '''
-    [
-        {
-            "name": "Alice",
-            "age": 30,
-            "address": {
-                "city": "New York",
-                "state": "NY"
-            },
-            "phones": ["123-456-7890", "987-654-3210"]
-        },
-        {
-            "name": "Bob",
-            "age": 25,
-            "address": {
-                "city": "San Francisco",
-                "state": "CA"
-            },
-            "phones": ["555-555-5555"]
-        }
-    ]
+    {
+"problems": [{
+    "Diabetes":[{
+        "medications":[{
+            "medicationsClasses":[{
+                "className":[{
+                    "associatedDrug":[{
+                        "name":"asprin",
+                        "dose":"",
+                        "strength":"500 mg"
+                    }],
+                    "associatedDrug#2":[{
+                        "name":"somethingElse",
+                        "dose":"",
+                        "strength":"500 mg"
+                    }]
+                }],
+                "className2":[{
+                    "associatedDrug":[{
+                        "name":"asprin",
+                        "dose":"",
+                        "strength":"500 mg"
+                    }],
+                    "associatedDrug#2":[{
+                        "name":"somethingElse",
+                        "dose":"",
+                        "strength":"500 mg"
+                    }]
+                }]
+            }]
+        }],
+        "labs":[{
+            "missing_field": "missing_value"
+        }]
+    }],
+    "Asthma":[{}]
+}]}
     '''
+
 
     # Output CSV file name
     output_csv = "data.csv"
