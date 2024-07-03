@@ -19,7 +19,6 @@ def flatten_json(y, parent_key='', sep='_'):
 def json_to_csv(json_string, output_csv):
     """Converts a JSON string to a CSV file."""
     try:
-        # Load the JSON data from the string
         data = json.loads(json_string)
 
         # Check if the JSON data is a list, if not, make it a list
@@ -32,7 +31,6 @@ def json_to_csv(json_string, output_csv):
         # Convert JSON to DataFrame
         df = pd.DataFrame(flattened_data)
 
-        # Save DataFrame to CSV
         df.to_csv(output_csv, index=False)
 
         print(f"Conversion completed. The CSV file has been saved as '{output_csv}'.")
@@ -41,7 +39,6 @@ def json_to_csv(json_string, output_csv):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-# Example usage
 if __name__ == "__main__":
     # Example of reading a JSON string from standard input
     json_string = '''
@@ -84,9 +81,6 @@ if __name__ == "__main__":
 }]}
     '''
 
-
-    # Output CSV file name
     output_csv = "data.csv"
 
-    # Convert JSON to CSV
     json_to_csv(json_string, output_csv)
